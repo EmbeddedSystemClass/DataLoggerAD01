@@ -3,7 +3,9 @@
 
 // https://forum.arduino.cc/index.php?topic=523216.0
 
-RTC_PCF8523 rtc;
+// DS1307
+
+RTC_PCF8523 rtc; // I2c Addres 0x68
 //char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesdy", "Wedns.", "Thurs.", "Friday", "Satur."};
 
@@ -110,7 +112,7 @@ void RTC_TimeClock(){
     Serial.println("RTC is NOT running!");
     // following line sets the RTC to the date & time this sketch was compiled
      rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-     RTC_Test = 18;
+  //   RTC_Test = 18;
     // This line sets the RTC with an explicit date & time, for example to set
     // January 21, 2014 at 3am you would call:
     // rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
@@ -198,6 +200,7 @@ void RTC_TimeClock(){
               Serial.println(Second);           
               rtc.adjust(DateTime(Year, Month, Day, Hour, Minute, Second));
               Serial.println("Date & Time Adjusted");
+              Display_ReInit(20);          
           }               
       }  
 }

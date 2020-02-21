@@ -163,25 +163,39 @@ void SD_Card_Init(){
     }
      
 }
+void SD_CardLogTask(void){
+     if (LogPause)SD_Log_File();
+     else SD_Info_Only();        
+     if(SD_Card_Reset){
+          SD_Card_Reset = 0;
+          SD_Card_Info();
+          SD_Card_Init();      
+     }
+}
 
-void SD_Log_File(){
-   //  dataString = "";
-    SD_Card_Init();
+void SD_Info_Only(){
+      if(SD_KartStop == OFF){
+        SD_KartStop = ON;
+        SD_Card_Info();
+        SD_Card_Init();
+      } 
+}
+
+void SD_Log_File(){  
     if(SD_Card_Reset){
       SD_Card_Reset = 0;
       SD_Card_Info();
-      SD_Card_Init();       
+      SD_Card_Init(); 
+   //   dataString = "Year,Month,Date,Hour,Min,Sec,Data1,Data2,Data3";    
+      dataString = "Year,Month,Date,Hour,Min,Sec,WindRaw,velReading,WindMPH,WindTemp,TemperatureSi072,Humidity,Pressure(hPa),TemperatureBMP,Altitude(m),Luminosity";       
     }
-
-     dataString = Str_DispTime;   
-     for (int analogPin = 0; analogPin < 3; analogPin++) {
-    int sensor = analogRead(analogPin);
-    dataString += String(sensor);
- 
-    if (analogPin < 2) {
-      dataString += ",";
-    }
-  }
+    else{
+      SD_Card_Init();     
+      dataString = Str_DispTime;          
+      dataString += String(RV_ADunits) + ',' + String(velReading)+ ',' + String(Values.WindTemp) + ',' +String(Values.WindMPH)+ ','       
+      + String(Values.TemperatureSi072)+ ',' + String(Values.Humidity)+ ','+ String(Values.Pressure)+ ',' 
+       + String(Values.TemperatureBMP) + ',' + String(Values.Altitude)+ ','+ String(Values.Luminosity); 
+   }     
 /*
     if (! SD.exists(LOG_FILE)) {
         // file doesnt exist
@@ -194,8 +208,6 @@ void SD_Log_File(){
        Serial.println("file exist   ");    
     }
  */ 
-
-
   // open the file. note that only one file can be open at a time,
   // so you have to close this one before opening another.
   File dataFile = SD.open(LOG_FILE, FILE_WRITE);
@@ -206,7 +218,7 @@ void SD_Log_File(){
     dataFile.close();
     // print to the serial port too:
         Serial.print("dataString:");
-    Serial.println(dataString);
+      Serial.println(dataString);
   }
   // if the file isn't open, pop up an error:
   else {
