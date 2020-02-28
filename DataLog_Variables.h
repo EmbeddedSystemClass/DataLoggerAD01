@@ -115,6 +115,19 @@ struct
   unsigned int Luminosity;
 }Values;
 
+struct
+{
+  float x;
+  float y; // 27
+  float z; //    
+}Accelometer;
+struct
+{
+  float x;
+  float y; // 27
+  float z; //    
+}Gyro;
+
 
 // for wind sensor
 float zeroWindAdjustment = 0.1;             // individual adjustment parameter for wind sensor (standard = 0.1)

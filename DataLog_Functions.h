@@ -2,16 +2,17 @@
 
 
 void AdcRead(){
-    
-
+     #ifdef ARDUINO_MEGA
     ADCSRA |= (1 << ADEN); // enable adc
+         #endif
     delay(1);
   //  Values.WindRaw = analogRead(0);delay(1);
     Values.WindMPH = analogRead(1);delay(1);
     Values.WindTemp = analogRead(2);
     WindSpeed_Calculation(); 
-
+   #ifdef ARDUINO_MEGA
    ADCSRA &= ~ (1 << ADEN);            // turn off ADC
+   #endif
 }
 
 

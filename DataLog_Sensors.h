@@ -3,6 +3,7 @@
 #define CHANNEL_TEMPHUM 7  // 0x40 default address 
 #define CHANNEL_LIGHT 6  // 0x29 default address sio71 
 #define CHANNEL_BAROMETRIC 5  // 0x77 default address bmp388 
+#define CHANNEL_ACCEL_GYRO 1  // 0x77 default address LSM9DS1 accoloremoter/Gyroscope/MAgnetometer 
 //                            0x68 RTC sdefault address
 // https://cdn-learn.adafruit.com/downloads/pdf/adafruit-tsl2591.pdf
 // https://cdn-shop.adafruit.com/datasheets/TSL25911_Datasheet_EN_v1.pdf
@@ -13,8 +14,8 @@
 Adafruit_Si7021 THsensor = Adafruit_Si7021();
 Adafruit_TSL2591 tsl = Adafruit_TSL2591(2591); // pass in a number for the sensor identifier (for your use later)
 #define SEALEVELPRESSURE_HPA (1013.25)
-
 Adafruit_BMP3XX bmp; // I2C
+//Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1(); 
 
 
 
@@ -23,15 +24,65 @@ Adafruit_BMP3XX bmp; // I2C
 
 
 void tcaselect(uint8_t i) {
-  if (i > 7) return;
+ // if (i > 7) return;
   Wire.beginTransmission(TCAADDR);
     //dafruit Industries
     //  https://learn.adafruit.com/adafruit-tca9548a-1-to-8-i2c-multiplexerbreakout
     Wire.write(1 << i);
     Wire.endTransmission();
-    delay(20);
+    delay(2);
 }
 
+void SensorACccel_GyroInit(){
+    tcaselect(CHANNEL_ACCEL_GYRO);
+    if (!IMU.begin()) {
+      Serial.println("Failed to initialize IMU!");
+     // while (1);
+    }
+    else       
+      Serial.println("Acceloreometer & Gyro Initialized");
+    Serial.print("Accelerometer sample rate = ");
+    Serial.print(IMU.accelerationSampleRate());
+    Serial.println(" Hz");
+    Serial.println();
+    Serial.println("Acceleration in G's");
+    Serial.println("X\tY\tZ");
+
+    Serial.print("Gyroscope sample rate = ");
+    Serial.print(IMU.gyroscopeSampleRate());
+    Serial.println(" Hz");
+    Serial.println();
+    Serial.println("Gyroscope in degrees/second");
+    Serial.println("X\tY\tZ");
+  }
+void SensorAcccel_GyroRead(){
+   tcaselect(CHANNEL_ACCEL_GYRO);
+ //  float x, y, z;
+
+  if (IMU.accelerationAvailable()) {
+      IMU.readAcceleration(Accelometer.x, Accelometer.y, Accelometer.z);
+
+      Serial.print(Accelometer.x);
+      Serial.print('\t');
+      Serial.print(Accelometer.y);
+      Serial.print('\t');
+      Serial.println(Accelometer.z);
+  }
+    else Serial.println("Accelometer Reading Problem");
+  
+  if (IMU.gyroscopeAvailable()) {
+      IMU.readGyroscope(Gyro.x, Gyro.y, Gyro.z);
+
+      Serial.print(Gyro.x);
+      Serial.print('\t');
+      Serial.print(Gyro.y);
+      Serial.print('\t');
+      Serial.println(Gyro.z);
+  }
+  else Serial.println("Gyroscope Reading Problem");
+}
+  
+  
 void SensorInit_Si072(){
   // Temperature & Humidity Sensor
   tcaselect(CHANNEL_TEMPHUM);
@@ -39,13 +90,15 @@ void SensorInit_Si072(){
   
   if (!THsensor.begin()) {
     Serial.println("Did not find Si7021 sensor!");
-    delay(250);
+  //  delay(250);
   //  while (true)      
-  }
+  }else{
+    Serial.println(" Si7021 sensor found!");
     Serial.print(" Rev(");
     Serial.print(THsensor.getRevision());
     Serial.print(")");
     Serial.print(" Serial #"); Serial.print(THsensor.sernum_a, HEX); Serial.println(THsensor.sernum_b, HEX);
+  }
 }
 void SensorRead_Si072(){
     tcaselect(CHANNEL_TEMPHUM);
@@ -66,36 +119,40 @@ void SensorAlt_Init() {
     Serial.println("Could not find a valid BMP3 sensor, check wiring!");
     //while (1);
   }
-  else 
-      Serial.println(" BMP3 sensor Valid!");
-  // Set up oversampling and filter initialization
-  bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
-  bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
-  bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
-  //bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+  else {
+      Serial.println(" BMP388 sensor Valid!");
+      // Set up oversampling and filter initialization
+      bmp.setTemperatureOversampling(BMP3_OVERSAMPLING_8X);
+      bmp.setPressureOversampling(BMP3_OVERSAMPLING_4X);
+      bmp.setIIRFilterCoeff(BMP3_IIR_FILTER_COEFF_3);
+      //bmp.setOutputDataRate(BMP3_ODR_50_HZ);
+  }
 }
 
 void SensorAlt_Read(){
       tcaselect(CHANNEL_BAROMETRIC);
-      delay(1);
+      
     if (! bmp.performReading()) {
     Serial.println("Failed to perform reading :(");
-    return;
+   // return;
   }
-  Serial.print("Temperature = ");
-  Values.TemperatureBMP = bmp.temperature;
-  Serial.print(Values.TemperatureBMP);
-  Serial.println(" *C");
+  else{
+  
+    Serial.print("Temperature = ");
+    Values.TemperatureBMP = bmp.temperature;
+    Serial.print(Values.TemperatureBMP);
+    Serial.print(" *C");
 
-  Serial.print("Pressure = ");
-  Values.Pressure = bmp.pressure / 100.0;
-  Serial.print(Values.Pressure);
-  Serial.println(" hPa");
+    Serial.print("  Pressure = ");
+    Values.Pressure = bmp.pressure / 100.0;
+    Serial.print(Values.Pressure);
+    Serial.println(" hPa");
 
-  Serial.print("Approx. Altitude = ");
-  Values.Altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);
-  Serial.print(Values.Altitude);
-  Serial.println(" m");
+    Serial.print("Altitude = ");
+    Values.Altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+    Serial.print(Values.Altitude);
+    Serial.println(" m");
+  }
 }
 void displaySensorDetails(void)
 {
@@ -110,7 +167,7 @@ void displaySensorDetails(void)
   Serial.print  (F("Resolution:   ")); Serial.print(sensor.resolution, 4); Serial.println(F(" lux"));  
   Serial.println(F("------------------------------------"));
   Serial.println(F(""));
-  delay(500);
+ // delay(500);
 }
 
 
@@ -122,6 +179,7 @@ void displaySensorDetails(void)
 /**************************************************************************/
 void configureSensor(void)
 {
+ 
   // You can change the gain on the fly, to adapt to brighter/dimmer light situations
   //tsl.setGain(TSL2591_GAIN_LOW);    // 1x gain (bright light)
   tsl.setGain(TSL2591_GAIN_MED);      // 25x gain
@@ -188,7 +246,7 @@ void SensorLight_Read(void) {
   //uint16_t x = tsl.getLuminosity(TSL2591_FULLSPECTRUM);
   //uint16_t x = tsl.getLuminosity(TSL2591_INFRARED);
 
-  Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
+//  Serial.print(F("[ ")); Serial.print(millis()); Serial.print(F(" ms ] "));
   Serial.print(F("Luminosity: "));
   Serial.println(Values.Luminosity, DEC);
 }

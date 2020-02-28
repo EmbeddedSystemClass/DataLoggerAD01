@@ -158,7 +158,7 @@ void SD_Card_Init(){
       case 3 ://SDHC
       break; 
       case 0 ://no card   
-      default: SD_Card_Reset = 1;//unknown  
+      default: SD_Card_Reset = OFF;//unknown  
       break;     
     }
      
@@ -166,13 +166,14 @@ void SD_Card_Init(){
 void SD_CardLogTask(void){
      if (LogPause)SD_Log_File();
      else SD_Info_Only();        
+    /*
      if(SD_Card_Reset){
           SD_Card_Reset = 0;
           SD_Card_Info();
           SD_Card_Init();      
      }
+     */
 }
-
 void SD_Info_Only(){
       if(SD_KartStop == OFF){
         SD_KartStop = ON;
@@ -187,14 +188,17 @@ void SD_Log_File(){
       SD_Card_Info();
       SD_Card_Init(); 
    //   dataString = "Year,Month,Date,Hour,Min,Sec,Data1,Data2,Data3";    
-      dataString = "Year,Month,Date,Hour,Min,Sec,WindRaw,velReading,WindMPH,WindTemp,TemperatureSi072,Humidity,Pressure(hPa),TemperatureBMP,Altitude(m),Luminosity";       
+      dataString = "Year,Month,Date,Hour,Min,Sec,WindRaw,velReading,WindMPH,WindTemp,TemperatureSi072,Humidity,Pressure(hPa),";
+      dataString += "TemperatureBMP,Altitude(m),Luminosity,Acc.(x),Acc.(y),Acc.(z),Gyro(x),Gyro(y),Gyro(z)";       
     }
     else{
       SD_Card_Init();     
       dataString = Str_DispTime;          
       dataString += String(RV_ADunits) + ',' + String(velReading)+ ',' + String(Values.WindTemp) + ',' +String(Values.WindMPH)+ ','       
       + String(Values.TemperatureSi072)+ ',' + String(Values.Humidity)+ ','+ String(Values.Pressure)+ ',' 
-       + String(Values.TemperatureBMP) + ',' + String(Values.Altitude)+ ','+ String(Values.Luminosity); 
+      + String(Values.TemperatureBMP) + ',' + String(Values.Altitude)+ ','+ String(Values.Luminosity) +','
+      + String(Accelometer.x) + ',' + String(Accelometer.y)+ ','+ String(Accelometer.z) + ','      
+      + String(Gyro.x) + ',' + String(Gyro.y)+ ','+ String(Gyro.z) ;       
    }     
 /*
     if (! SD.exists(LOG_FILE)) {

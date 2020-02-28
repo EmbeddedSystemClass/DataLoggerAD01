@@ -250,7 +250,7 @@ void displayValues(void)
     display.print(Values.TemperatureBMP,1);
    //  display.print("\0x7F");   
     display.print("C");  
-    display.print(Values.Altitude);
+    display.print(Values.Altitude,1);
     display.println("m");  
    /*  
     display.print("Menu:");
